@@ -1,0 +1,157 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  name         String         @db.VarChar(255)
+  phone_number  String?
+  address      String?
+  createdAt    DateTime?      @default(now())
+  updatedAt    DateTime?      @updatedAt
+  Account      Account[]
+  bookProgress BookProgress[]
+  Favorite Favorite[]
+
+  @@map("user")
+}
+
+model Account {
+  id              Int @id @default(autoincrement())
+  user_id         Int
+  subscription_id Int
+
+  email       String  @db.VarChar(255)
+  password    String
+  is_verified Boolean @default(false)
+
+  User         User        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Subscription Subscription @relation(fields: [subscription_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("account")
+}
+
+model Book {
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String?
+  rating         Int      @default(0)
+  progress       Float    @default(0)
+  published_year Int
+  image          String?
+  language       String   @default("Unknown")
+  book_type      BookType @default(NORMAL)
+  src_audio      String?
+  lyric          String? @db.VarChar(9999)
+
+  bookGenres BookGenre[]
+  bookAuthor BookAuthor[]
+  bookFavorite Favorite[]
+
+  @@map("book")
+}
+
+model Genre {
+  id   Int    @id @default(autoincrement())
+  name String
+  image String?
+
+  bookGenres BookGenre[]
+
+  @@map("genre")
+}
+
+model BookGenre {
+  id       Int   @id @default(autoincrement())
+  book_id  Int
+  book     Book  @relation(fields: [book_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  genre_id Int
+  genre    Genre @relation(fields: [genre_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("book_genre")
+}
+
+model Author {
+  id          Int     @id @default(autoincrement())
+  name        String
+  image       String?
+  description String?
+
+  bookAuthor BookAuthor[]
+
+  @@map("author")
+}
+
+model BookAuthor {
+  id Int @id @default(autoincrement())
+
+  book_id   Int
+  book      Book   @relation(fields: [book_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  author_id Int
+  author    Author @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("book_author")
+}
+
+model SubscriptionHistory {
+  id    Int       @id @default(autoincrement())
+  name  String
+  price Float
+  start DateTime?
+  end   DateTime?
+
+  subcription Subscription[]
+
+  @@map("subcription_history")
+}
+
+model Subscription {
+  id                      Int @id @default(autoincrement())
+  subscription_history_id Int
+
+  duration        Float
+  price_per_month Float
+  type            String
+  limit_book_mark Int
+  book_type       BookType? @default(NORMAL)
+
+  subcription_history SubscriptionHistory @relation(fields: [subscription_history_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  accounts Account[]
+
+  @@map("subscription")
+}
+
+enum BookType {
+  PREMIUM
+  NORMAL
+}
+
+model BookProgress {
+  id       Int   @id @default(autoincrement())
+  book_id  Int
+  user_id  Int
+  progress Float
+  User     User? @relation(fields: [user_id], references: [id])
+
+  @@map("book_progress")
+}
+
+model Favorite{
+  id Int @id @default(autoincrement())
+  book_id Int
+  user_id Int
+
+  book Book @relation(fields: [book_id],references: [id],onDelete: Cascade,onUpdate: Cascade)
+  user User @relation(fields: [user_id],references: [id],onDelete: Cascade,onUpdate: Cascade)
+
+  @@map("favorite")
+}
