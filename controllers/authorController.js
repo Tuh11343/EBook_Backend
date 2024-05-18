@@ -273,7 +273,7 @@ exports.findBookAuthor = catchAsync(async (req, res) => {
         } else {
             return res.status(200).json({
                 status: 'Author search successful',
-                author:author
+                author:author.name
             })
         }
     }
